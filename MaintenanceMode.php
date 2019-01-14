@@ -132,10 +132,17 @@ class MaintenanceMode extends Component
      */
     public function init()
     {
+        
         Yii::setAlias('@maintenance', $this->commandPath);
         if (!file_exists(Yii::getAlias('@maintenance'))) {
             FileHelper::createDirectory(Yii::getAlias('@maintenance'));
         }
+        
+        $message_file = $this->getMessageFilePath();
+        if (file_exists($message_file)) {
+            $this->message = file_get_contents($message_file);
+        }
+        
         if (Yii::$app instanceof \yii\console\Application) {
             Yii::$app->controllerMap['maintenance'] = $this->consoleController;
         } else {
@@ -167,6 +174,35 @@ class MaintenanceMode extends Component
         return Yii::getAlias('@maintenance/.enable');
     }
 
+    /**
+     * @since 0.2.7
+     * @return bool|string
+     */
+    protected function getMessageFilePath()
+    {
+        return Yii::getAlias('@maintenance/.message');
+    }
+    
+    public function getMessageCustom()
+    {
+        $message_file = $this->getMessageFilePath();
+        if (file_exists($message_file)) {
+            return file_get_contents($message_file);
+        } else {
+            return null;
+        }
+    }
+    
+    public function setMessageCustom($message)
+    {
+        $message_file = $this->getMessageFilePath();
+        if($message) {
+            return (bool) file_put_contents($message_file, $message);
+        } else {
+            return unlink($message_file);
+        }
+    }
+    
     /**
      * Turn off mode.
      * @since 0.2.5
